@@ -1,9 +1,10 @@
 /**
  * Created by cmeyers on 7/25/16.
  */
-import { observable, computed } from 'mobx';
-// import { action } from 'mobx';
+import { action, computed, observable, useStrict } from 'mobx';
 import fetch from 'isomorphic-fetch';
+
+useStrict(true);
 
 import urlConfig from '../config';
 urlConfig.loadConfig();
@@ -38,11 +39,16 @@ export class FavoritesList {
     @observable favorites;
 
     constructor() {
+        this._init();
+    }
+
+    @action
+    _init() {
         this.favorites = [];
     }
 
     // TODO: determine why useStrict triggers an error here
-    // @action
+    @action
     loadFavorites() {
         const baseUrl = urlConfig.blueoceanAppURL;
         const url = `${baseUrl}/rest/users/cmeyers/favorites/`;
@@ -51,9 +57,9 @@ export class FavoritesList {
         fetch(url, fetchOptions)
             .then(checkStatus)
             .then(parseJSON)
-            .then((json) => {
+            .then(action((json) => {
                 this.favorites = json;
-            });
+            }));
     }
 
     @computed get count() {

@@ -9,8 +9,11 @@ import { List } from 'immutable';
 import { favoritesSelector } from '../redux/FavoritesStore';
 import { actions } from '../redux/FavoritesActions';
 
+import { FavoritesList } from '../model/FavoritesList';
+
 import FavoritesProvider from './FavoritesProvider';
 import { PipelineCard } from './PipelineCard';
+import ViewFavoritesList from './ViewFavoritesList';
 
 // the order the cards should be displayed based on their result/state (aka 'status')
 const statusSortOrder = [
@@ -86,6 +89,8 @@ const extractPath = (path, begin, end) => {
         return path;
     }
 };
+
+const favoritesList = new FavoritesList();
 
 /**
  */
@@ -168,9 +173,12 @@ export class DashboardCards extends Component {
 
     render() {
         return (
-            <FavoritesProvider store={this.props.store}>
-                { this._renderCardStack() }
-            </FavoritesProvider>
+            <div>
+                <FavoritesProvider store={this.props.store}>
+                    { this._renderCardStack() }
+                </FavoritesProvider>
+                <ViewFavoritesList list={favoritesList} />
+            </div>
         );
     }
 }

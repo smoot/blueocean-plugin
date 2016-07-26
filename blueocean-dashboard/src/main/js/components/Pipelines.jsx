@@ -60,6 +60,7 @@ export default class Pipelines extends Component {
                         <Extensions.Renderer
                           extensionPoint="jenkins.pipeline.list.top"
                           store={this.context.store}
+                          mobxStores={this.context.mobxStores}
                         />
                         <Table
                           className="pipelines-table fixed"
@@ -88,4 +89,5 @@ Pipelines.contextTypes = {
     params: PropTypes.object,
     pipelines: array,
     store: PropTypes.object,
+    mobxStores: PropTypes.object,
 };

@@ -2,9 +2,9 @@
 # NB: "component" currently maps to modules, not "symbols" so make sure to "export default"
 # WARNING: If you change this you'll have to change io.jenkins.blueocean.jsextensions.JenkinsJSExtensionsTest as well :(
 extensions:
-  - component: redux/FavoritesStore
-    extensionPoint: jenkins.main.stores
-  - component: components/DashboardCards
+  - component: model/PersonalizationStore
+    extensionPoint: jenkins.main.stores.mobx
+  - component: components/FavoritesDashboard
     extensionPoint: jenkins.pipeline.list.top
   - component: components/FavoritePipeline
     extensionPoint: jenkins.pipeline.list.action

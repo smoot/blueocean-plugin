@@ -2,12 +2,7 @@
  * Created by cmeyers on 7/20/16.
  */
 import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
-import { List } from 'immutable';
-
-import { userSelector, favoritesSelector } from '../redux/FavoritesStore';
-import { actions } from '../redux/FavoritesActions';
+import { observer } from 'mobx-react';
 
 /**
  * FavoritesProvider ensures that the current user's favorites
@@ -16,6 +11,7 @@ import { actions } from '../redux/FavoritesActions';
  * Components that require this data can simply wrap themselves in
  * FavoritesProvider which will ensure the store is updated correctly.
  */
+@observer
 export class FavoritesProvider extends Component {
 
     componentWillMount() {
@@ -27,17 +23,17 @@ export class FavoritesProvider extends Component {
     }
 
     _initialize(props) {
-        const { user, favorites } = props;
+        const { favoritesList } = props;
+        const { user, favorites } = props.favoritesList;
 
         const shouldFetchUser = !user;
         const shouldFetchFavorites = user && !favorites;
 
         if (shouldFetchUser) {
-            this.props.fetchUser();
-        }
-
-        if (shouldFetchFavorites) {
-            this.props.fetchFavorites(user);
+            favoritesList.fetchCurrentUser()
+                .then(() => {
+                    favoritesList.fetchFavorites();
+                });
         }
     }
 
@@ -50,15 +46,7 @@ export class FavoritesProvider extends Component {
 
 FavoritesProvider.propTypes = {
     children: PropTypes.node,
-    user: PropTypes.object,
-    favorites: PropTypes.instanceOf(List),
-    fetchUser: PropTypes.func,
-    fetchFavorites: PropTypes.func,
+    favoritesList: PropTypes.object,
 };
 
-const selectors = createSelector(
-    [userSelector, favoritesSelector],
-    (user, favorites) => ({ user, favorites })
-);
-
-export default connect(selectors, actions)(FavoritesProvider);
+export default FavoritesProvider;

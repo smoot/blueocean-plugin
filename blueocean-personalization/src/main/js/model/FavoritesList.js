@@ -1,13 +1,18 @@
 /**
  * Created by cmeyers on 7/25/16.
  */
-import { action, computed, observable, useStrict } from 'mobx';
+import Immutable from 'immutable';
 import fetch from 'isomorphic-fetch';
-
+import { action, computed, observable, useStrict } from 'mobx';
 useStrict(true);
 
 import urlConfig from '../config';
 urlConfig.loadConfig();
+
+import { User } from '../model/User';
+import { checkMatchingFavoriteUrls } from '../util/FavoriteUtils';
+
+const { List } = Immutable;
 
 const defaultFetchOptions = {
     credentials: 'same-origin',
@@ -34,9 +39,18 @@ function parseJSON(response) {
         });
 }
 
+function execFetch(url, options) {
+    const fetchOptions = options || { ... defaultFetchOptions };
+
+    return fetch(url, fetchOptions)
+        .then(checkStatus)
+        .then(parseJSON);
+}
+
 export class FavoritesList {
 
     @observable favorites;
+    user = null;
 
     constructor() {
         this._init();
@@ -44,22 +58,66 @@ export class FavoritesList {
 
     @action
     _init() {
-        this.favorites = [];
+        this.favorites = new List();
     }
 
-    // TODO: determine why useStrict triggers an error here
-    @action
-    loadFavorites() {
+    fetchCurrentUser() {
         const baseUrl = urlConfig.blueoceanAppURL;
-        const url = `${baseUrl}/rest/users/cmeyers/favorites/`;
-        const fetchOptions = { ...defaultFetchOptions };
+        const url = `${baseUrl}/rest/organizations/jenkins/user/`;
 
-        fetch(url, fetchOptions)
-            .then(checkStatus)
-            .then(parseJSON)
-            .then(action((json) => {
-                this.favorites = json;
+        return execFetch(url)
+            .then((data) => {
+                this.user = new User(data);
+            });
+    }
+
+    fetchFavorites() {
+        const baseUrl = urlConfig.blueoceanAppURL;
+        const username = this.user.id;
+        const url = `${baseUrl}/rest/users/${username}/favorites/`;
+
+        return execFetch(url)
+            .then(action((data) => {
+                this.favorites = new List(data);
             }));
+    }
+
+    toggleFavorite(addFavorite, pipelineOrBranch) {
+        const baseUrl = urlConfig.jenkinsRootURL;
+        const url = `${baseUrl}${pipelineOrBranch._links.self.href}/favorite`;
+
+        const fetchOptions = {
+            ...defaultFetchOptions,
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                { favorite: addFavorite }
+            ),
+        };
+
+        return execFetch(url, fetchOptions)
+            .then((favoritePayload) => {
+                this._updateToggledFavorite(addFavorite, pipelineOrBranch, favoritePayload);
+            });
+    }
+
+    @action
+    _updateToggledFavorite(addFavorite, pipelineOrBranch, favoritePayload) {
+        if (addFavorite) {
+            this.favorites = this.favorites.push(favoritePayload);
+        }
+
+        const toggledBranchHref = pipelineOrBranch._links.self.href;
+        // filter the list so that only favorites which didn't match the branch's href are returned
+        this.favorites = this.favorites.filter(fav => {
+            const favoritedBranch = fav.item;
+            return !checkMatchingFavoriteUrls(
+                favoritedBranch._links.self.href,
+                toggledBranchHref,
+            );
+        });
     }
 
     @computed get count() {

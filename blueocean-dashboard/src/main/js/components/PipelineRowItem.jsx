@@ -89,6 +89,7 @@ export default class PipelineRowItem extends Component {
                     <Extensions.Renderer
                       extensionPoint="jenkins.pipeline.list.action"
                       store={this.context.store}
+                      mobxStores={this.context.mobxStores}
                       pipeline={this.props.pipeline}
                     />
                 </td>
@@ -104,5 +105,5 @@ PipelineRowItem.propTypes = {
 
 PipelineRowItem.contextTypes = {
     location: PropTypes.object,
-    store: PropTypes.object,
+    mobxStores: PropTypes.object,
 };

@@ -2,18 +2,12 @@
  * Created by cmeyers on 7/6/16.
  */
 import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
+import { observer } from 'mobx-react';
+
 import { List } from 'immutable';
-
-import { favoritesSelector } from '../redux/FavoritesStore';
-import { actions } from '../redux/FavoritesActions';
-
-import { FavoritesList } from '../model/FavoritesList';
 
 import FavoritesProvider from './FavoritesProvider';
 import { PipelineCard } from './PipelineCard';
-import ViewFavoritesList from './ViewFavoritesList';
 
 // the order the cards should be displayed based on their result/state (aka 'status')
 const statusSortOrder = [
@@ -90,22 +84,21 @@ const extractPath = (path, begin, end) => {
     }
 };
 
-const favoritesList = new FavoritesList();
-
 /**
  */
+@observer
 export class DashboardCards extends Component {
 
     _onFavoriteToggle(isFavorite, favorite) {
-        this.props.toggleFavorite(isFavorite, favorite.item);
+        this.props.favoritesList.toggleFavorite(isFavorite, favorite.item);
     }
 
     _renderCardStack() {
-        if (!this.props.favorites) {
+        if (!this.props.favoritesList.favorites) {
             return null;
         }
 
-        const sortedFavorites = this.props.favorites.sort(sortComparator);
+        const sortedFavorites = this.props.favoritesList.favorites.sort(sortComparator);
 
         const favoriteCards = sortedFavorites.map(favorite => {
             const pipeline = favorite.item;
@@ -174,24 +167,14 @@ export class DashboardCards extends Component {
     render() {
         return (
             <div>
-                <FavoritesProvider store={this.props.store}>
-                    { this._renderCardStack() }
-                </FavoritesProvider>
-                <ViewFavoritesList list={favoritesList} />
+                { this._renderCardStack() }
             </div>
         );
     }
 }
 
 DashboardCards.propTypes = {
-    store: PropTypes.object,
-    favorites: PropTypes.instanceOf(List),
-    toggleFavorite: PropTypes.func,
+    favoritesList: PropTypes.object,
 };
 
-const selectors = createSelector(
-    [favoritesSelector],
-    (favorites) => ({ favorites })
-);
-
-export default connect(selectors, actions)(DashboardCards);
+export default DashboardCards;

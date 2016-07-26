@@ -2,7 +2,8 @@ import React, { Component, PropTypes } from 'react';
 import { render } from 'react-dom';
 import { Router, Route, Link, useRouterHistory, IndexRedirect } from 'react-router';
 import { createHistory } from 'history';
-import { Provider, configureStore, combineReducers} from './redux';
+import { Provider as ReduxProvider, configureStore, combineReducers} from './redux';
+import { Provider as MobXProvider } from 'mobx-react';
 import { DevelopmentFooter } from './DevelopmentFooter';
 
 import Extensions from '@jenkins-cd/js-extensions';
@@ -75,7 +76,7 @@ function makeRoutes(routes) {
 }
 
 
-function startApp(routes, stores) {
+function startApp(routes, stores, mobxStores) {
 
     const rootElement = document.getElementById("root");
     const headElement = document.getElementsByTagName("head")[0];
@@ -117,6 +118,21 @@ function startApp(routes, stores) {
         );
     }
 
+    // build up a 'master store' of all registered component stores
+    let mobxMasterStore = {};
+    if (mobxStores.length > 0) {
+        /*
+        TODO: watch for store name collisions and warn
+        for (const store of mobxStores) {
+            for (const storeName in store) {
+                console.log(storeName);
+            }
+        }
+        */
+
+        mobxMasterStore = Object.assign(mobxMasterStore, ...mobxStores);
+    }
+
     // on each change of the url we need to update the location object
     history.listen(newLocation => {
         const { dispatch, getState } = store;
@@ -137,12 +153,19 @@ function startApp(routes, stores) {
 
     // Start React
     render(
-        <Provider store={store}>
-            <Router history={history}>{ makeRoutes(routes) }</Router>
-        </Provider>
-      , rootElement);
+        React.cloneElement(
+            <MobXProvider>
+                <ReduxProvider store={store}>
+                    <Router history={history}>{ makeRoutes(routes) }</Router>
+                </ReduxProvider>
+            </MobXProvider>,
+            mobxMasterStore
+            ),
+        rootElement);
 }
 
-Extensions.store.getExtensions(['jenkins.main.routes', 'jenkins.main.stores'], (routes = [], stores = []) => {
-    startApp(routes, stores);
+Extensions.store.getExtensions(
+    ['jenkins.main.routes', 'jenkins.main.stores', 'jenkins.main.stores.mobx'],
+    (routes = [], stores = [], mobxStores =[]) => {
+    startApp(routes, stores, mobxStores);
 });

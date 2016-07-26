@@ -116,17 +116,17 @@ export class FavoritesList {
     _updateToggledFavorite(addFavorite, pipelineOrBranch, favoritePayload) {
         if (addFavorite) {
             this.favorites = this.favorites.push(favoritePayload);
+        } else {
+            const toggledBranchHref = pipelineOrBranch._links.self.href;
+            // filter the list so that only favorites which didn't match the branch's href are returned
+            this.favorites = this.favorites.filter(fav => {
+                const favoritedBranch = fav.item;
+                return !checkMatchingFavoriteUrls(
+                    favoritedBranch._links.self.href,
+                    toggledBranchHref,
+                );
+            });
         }
-
-        const toggledBranchHref = pipelineOrBranch._links.self.href;
-        // filter the list so that only favorites which didn't match the branch's href are returned
-        this.favorites = this.favorites.filter(fav => {
-            const favoritedBranch = fav.item;
-            return !checkMatchingFavoriteUrls(
-                favoritedBranch._links.self.href,
-                toggledBranchHref,
-            );
-        });
     }
 
     @computed get count() {

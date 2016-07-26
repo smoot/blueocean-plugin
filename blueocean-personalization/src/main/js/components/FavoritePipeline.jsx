@@ -2,22 +2,20 @@
  * Created by cmeyers on 7/8/16.
  */
 import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
-import { List } from 'immutable';
+import { autorun } from 'mobx';
+import { observer } from 'mobx-react';
 
 import { Favorite } from '@jenkins-cd/design-language';
 
-import { favoritesSelector } from '../redux/FavoritesStore';
-import { actions } from '../redux/FavoritesActions';
+import PersonalizationStore from '../model/PersonalizationStore';
 import { checkMatchingFavoriteUrls } from '../util/FavoriteUtils';
-import FavoritesProvider from './FavoritesProvider';
 
 /**
  * A toggle button to favorite or unfavorite the provided item (pipeline or branch)
  * Contains all logic for rendering the current favorite status of that item
  * and toggling favorited state on the server.
  */
+@observer
 export class FavoritePipeline extends Component {
 
     constructor(props) {
@@ -29,21 +27,23 @@ export class FavoritePipeline extends Component {
     }
 
     componentWillMount() {
-        this._updateState(this.props);
+        this.favoritesList = PersonalizationStore.favoritesStore.favoritesList;
+        this.favoritesList.initialize();
+        this._unsubscribe = autorun(() => this.updateFavorite());
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.favorites !== nextProps.favorites) {
-            this._updateState(nextProps);
+    componentWillUnmount() {
+        if (this._unsubscribe) {
+            this._unsubscribe();
         }
     }
 
-    _updateState(props) {
-        const { pipeline } = props;
+    updateFavorite() {
+        const { pipeline } = this.props;
         let favorite = null;
 
-        if (props.favorites) {
-            favorite = props.favorites.find((fav) => {
+        if (this.favoritesList.favorites) {
+            favorite = this.favoritesList.favorites.find((fav) => {
                 const favUrl = fav.item._links.self.href;
                 const pipelineUrl = pipeline._links.self.href;
 
@@ -62,18 +62,18 @@ export class FavoritePipeline extends Component {
             favorite: isFavorite,
         });
 
-        if (this.props.toggleFavorite) {
-            this.props.toggleFavorite(isFavorite, this.props.pipeline);
+        debugger;
+
+        if (this.favoritesList.toggleFavorite) {
+            this.favoritesList.toggleFavorite(isFavorite, this.props.pipeline);
         }
     }
 
     render() {
         return (
-            <FavoritesProvider store={this.props.store}>
-                <Favorite checked={this.state.favorite} className={this.props.className}
-                  onToggle={() => this._onFavoriteToggle()}
-                />
-            </FavoritesProvider>
+            <Favorite checked={this.state.favorite} className={this.props.className}
+              onToggle={() => this._onFavoriteToggle()}
+            />
         );
     }
 }
@@ -81,18 +81,10 @@ export class FavoritePipeline extends Component {
 FavoritePipeline.propTypes = {
     className: PropTypes.string,
     pipeline: PropTypes.object,
-    favorites: PropTypes.instanceOf(List),
-    toggleFavorite: PropTypes.func,
-    store: PropTypes.object,
 };
 
 FavoritePipeline.defaultProps = {
     favorite: false,
 };
 
-const selectors = createSelector(
-    [favoritesSelector],
-    (favorites) => ({ favorites })
-);
-
-export default connect(selectors, actions)(FavoritePipeline);
+export default FavoritePipeline;

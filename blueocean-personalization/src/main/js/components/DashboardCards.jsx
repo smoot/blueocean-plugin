@@ -4,9 +4,6 @@
 import React, { Component, PropTypes } from 'react';
 import { observer } from 'mobx-react';
 
-import { List } from 'immutable';
-
-import FavoritesProvider from './FavoritesProvider';
 import { PipelineCard } from './PipelineCard';
 
 // the order the cards should be displayed based on their result/state (aka 'status')

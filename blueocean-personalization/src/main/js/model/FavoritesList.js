@@ -49,16 +49,25 @@ function execFetch(url, options) {
 
 export class FavoritesList {
 
-    @observable favorites;
+    @observable favorites = new List();
     user = null;
+    _initializing = false;
 
-    constructor() {
-        this._init();
-    }
+    initialize() {
+        const shouldFetchUser = !this.user;
 
-    @action
-    _init() {
-        this.favorites = new List();
+        console.log('intialize()?', this._initializing);
+
+        if (shouldFetchUser && !this._initializing) {
+            this._initializing = true;
+            this.fetchCurrentUser()
+                .then(() => {
+                    this.fetchFavorites()
+                        .then(() => {
+                            this._initializing = false;
+                        });
+                });
+        }
     }
 
     fetchCurrentUser() {

@@ -2,34 +2,23 @@
  * Created by cmeyers on 7/26/16.
  */
 import React, { Component, PropTypes } from 'react';
-import FavoritesProvider from './FavoritesProvider';
 import DashboardCards from './DashboardCards';
-
+import PersonalizationStore from '../model/PersonalizationStore';
 
 /**
- * Restyled version of FavoritePipeline component.
+ * Top-level component bound to extension point that passes down store to child components.
  */
 class FavoritesDashboard extends Component {
     render() {
-        if (!this.props.mobxStores ||
-            !this.props.mobxStores.favoritesStore ||
-            !this.props.mobxStores.favoritesStore.favoritesList) {
-            return null;
-        }
-
-        const favoritesList = this.props.mobxStores.favoritesStore.favoritesList;
+        const favoritesList = PersonalizationStore.favoritesStore.favoritesList;
+        favoritesList.initialize();
 
         return (
             <div>
-                <FavoritesProvider favoritesList={favoritesList} />
                 <DashboardCards favoritesList={favoritesList} />
             </div>
         );
     }
 }
-
-FavoritesDashboard.propTypes = {
-    mobxStores: PropTypes.object,
-};
 
 export default FavoritesDashboard;

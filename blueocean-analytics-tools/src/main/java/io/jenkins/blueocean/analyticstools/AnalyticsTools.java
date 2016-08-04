@@ -1,6 +1,7 @@
 package io.jenkins.blueocean.analyticstools;
 
 import hudson.Extension;
+import hudson.Plugin;
 import io.jenkins.blueocean.BluePageDecorator;
 import jenkins.model.Jenkins;
 
@@ -17,6 +18,7 @@ public class AnalyticsTools extends BluePageDecorator {
 
     /** gives Blueocean plugin version. blueocean-web being core module is looked at to determine the version */
     public String getBlueOceanPluginVersion(){
-        return Jenkins.getInstance().getPlugin("blueocean-web").getWrapper().getVersion();
+        Plugin plugin  = Jenkins.getInstance().getPlugin("blueocean-web");
+        return (plugin != null) ? plugin.getWrapper().getVersion() : null;
     }
 }

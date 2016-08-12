@@ -1,7 +1,7 @@
 /**
  * Created by cmeyers on 7/26/16.
  */
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import DashboardCards from './DashboardCards';
 import PersonalizationStore from '../model/PersonalizationStore';
 

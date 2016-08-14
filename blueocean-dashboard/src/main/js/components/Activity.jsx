@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { EmptyStateView, Table } from '@jenkins-cd/design-language';
 import Runs from './Runs';
-import Pipeline from '../api/Pipeline';
-import { ActivityRecord, ChangeSetRecord } from './records';
+import { RunRecord, ChangeSetRecord } from './records';
 import RunPipeline from './RunPipeline.jsx';
 import {
     actions,
@@ -10,6 +9,8 @@ import {
     createSelector,
     connect,
 } from '../redux';
+import { MULTIBRANCH_PIPELINE } from '../Capabilities';
+import { capabilityStore } from './Capability';
 
 const { object, array, func, string, bool } = PropTypes;
 
@@ -68,20 +69,32 @@ export class Activity extends Component {
             return null;
         }
 
+        const { capabilities } = this.props;
+        const isMultiBranchPipeline = capabilities[pipeline._class].contains(MULTIBRANCH_PIPELINE);
+        
         // Only show the Run button for non multi-branch pipelines.
         // Multi-branch pipelines have the Run/play button beside them on
         // the Branches/PRs tab.
-        const showRunButton = (pipeline && !Pipeline.isMultibranch(pipeline));
+        const showRunButton = !isMultiBranchPipeline;
+
 
         if (!runs.length) {
             return (<EmptyState repoName={this.context.params.pipeline} showRunButton={showRunButton} pipeline={pipeline} />);
         }
 
-        const headers = [
+        const headers = isMultiBranchPipeline ? [
             'Status',
             'Build',
             'Commit',
             { label: 'Branch', className: 'branch' },
+            { label: 'Message', className: 'message' },
+            { label: 'Duration', className: 'duration' },
+            { label: 'Completed', className: 'completed' },
+            { label: '', className: 'actions' },
+        ] : [
+            'Status',
+            'Build',
+            'Commit',
             { label: 'Message', className: 'message' },
             { label: 'Duration', className: 'duration' },
             { label: 'Completed', className: 'completed' },
@@ -93,21 +106,22 @@ export class Activity extends Component {
             <article className="activity">
                 {showRunButton && <RunNonMultiBranchPipeline pipeline={pipeline} buttonText="Run" />}
                 <Table className="activity-table fixed" headers={headers}>
-                    { runs.map((run, index) => {
-                        const changeset = run.changeSet;
-                        let latestRecord = {};
-                        if (changeset && changeset.length > 0) {
-                            latestRecord = new ChangeSetRecord(changeset[
-                                Object.keys(changeset)[0]
-                            ]);
-                        }
-                        const props = {
-                            key: index,
-                            changeset: latestRecord,
-                            result: new ActivityRecord(run),
-                        };
-                        return (<Runs {...props} />);
-                    })}
+                    {
+                        runs.map((run, index) => {
+                            const changeset = run.changeSet;
+                            let latestRecord = {};
+                            if (changeset && changeset.length > 0) {
+                                latestRecord = new ChangeSetRecord(changeset[
+                                    Object.keys(changeset)[0]
+                                ]);
+                            }
+
+                            return (<Runs {...{
+                                key: index,
+                                changeset: latestRecord,
+                                result: new RunRecord(run) }} />);
+                        })
+                    }
                 </Table>
             </article>
         </main>);
@@ -123,9 +137,10 @@ Activity.contextTypes = {
 Activity.propTypes = {
     runs: array,
     pipeline: object,
+    capabilities: object,
     fetchRunsIfNeeded: func,
 };
 
 const selectors = createSelector([runsSelector], (runs) => ({ runs }));
 
-export default connect(selectors, actions)(Activity);
+export default connect(selectors, actions)(capabilityStore(props => props.pipeline._class)(Activity));

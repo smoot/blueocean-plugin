@@ -10,7 +10,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rm -rf dist && mkdir dist && babel --presets es2015,react src -d dist",
+    "build": "ls node_modules/.bin/ && rm -rf dist && mkdir dist && node_modules/.bin/babel --presets es2015,react src -d dist",
     "test": "gulp test",
     "prepublish": "npm run build",
     "lint": "gulp lint"

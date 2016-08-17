@@ -5,7 +5,8 @@ node {
   docker.image('cloudbees/java-build-tools').inside {
     withEnv(['GIT_COMMITTER_EMAIL=me@hatescake.com','GIT_COMMITTER_NAME=Hates','GIT_AUTHOR_NAME=Cake','GIT_AUTHOR_EMAIL=hates@cake.com']) {
       try {
-        sh "npm install -g babel"
+        sh "cd js-extensions; npm install"
+        sh "cd blueocean-core-js; npm install"
         sh "mvn clean install -B -DcleanNode -Dmaven.test.failure.ignore"
         sh "node checkdeps.js"
         step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])

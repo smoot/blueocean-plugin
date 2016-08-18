@@ -2,7 +2,7 @@ node {
   deleteDir()
   checkout scm
 
-  docker.image('cloudbees/java-build-tools').inside {
+  docker.image('cloudbees/java-build-tools').inside('-v $HOME/.m2/:$HOME/.m2'){
     withEnv(['GIT_COMMITTER_EMAIL=me@hatescake.com','GIT_COMMITTER_NAME=Hates','GIT_AUTHOR_NAME=Cake','GIT_AUTHOR_EMAIL=hates@cake.com']) {
       try {
         sh "mvn clean install -B -DcleanNode -Dmaven.test.failure.ignore"

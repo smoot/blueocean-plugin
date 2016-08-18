@@ -10,10 +10,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "ls node_modules/.bin/ && rm -rf dist && mkdir dist && node_modules/.bin/babel --presets es2015,react src -d dist",
-    "test": "gulp test",
-    "prepublish": "npm run build",
-    "lint": "gulp lint"
+    "gulp": "gulp",
+    "test": "gulp test"
   },
   "author": "Tom Fennelly <tom.fennelly@gmail.com> (https://github.com/tfennelly)",
   "license": "MIT",

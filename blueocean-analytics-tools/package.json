@@ -8,7 +8,7 @@
   "author": "Vivek Pandey <vivek.pandey@gmail.com> (https://github.com/vivek)",
   "license": "MIT",
   "dependencies": {
-    "@jenkins-cd/js-modules": "0.0.5",
+    "@jenkins-cd/js-modules": "../js-extensions",
     "rollbar-browser": "1.9.1"
   },
   "devDependencies": {

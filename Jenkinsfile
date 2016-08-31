@@ -4,6 +4,8 @@ pipeline {
     stage ('build') {
       //deleteDir
       sh "mvn clean install -B -DcleanNode -Dmaven.test.failure.ignore"
+    }
+    stage ('verify') {
       sh "node checkdeps.js"
     }
   }

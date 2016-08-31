@@ -2,7 +2,7 @@ pipeline {
   agent docker:'cloudbees/java-build-tools'
   stages {
     stage ('build') {
-      deleteDir
+      //deleteDir
       sh "mvn clean install -B -DcleanNode -Dmaven.test.failure.ignore"
       sh "node checkdeps.js"
     }
@@ -12,7 +12,7 @@ pipeline {
     always {
       junit "**/target/surefire-reports/TEST-*.xml"
       archive "*/target/*.hpi"
-      deleteDir
+      //deleteDir
     }
   }
 

@@ -303,6 +303,7 @@ export class RunDetailsPipeline extends Component {
                   pipelineName={name}
                   branchName={isMultiBranch ? params.branch : undefined}
                   runId={run.id}
+                  run={run}
                 />
                 }
                 { hasResultsForSteps && shouldShowLogHeader && !this.mergedConfig.forceLogView &&
